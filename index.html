@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>倒计时</title>
+  <meta name="description" content="创建并分享你的专属倒计时">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e14;
+      --surface: #141820;
+      --surface-2: #1c2230;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #eef0f6;
+      --text-muted: #8b93a8;
+      --accent: #6c8cff;
+      --accent-glow: rgba(108, 140, 255, 0.35);
+      --success: #4ade80;
+      --danger: #f87171;
+      --radius: 16px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(108, 140, 255, 0.18), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.1), transparent);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 20px 64px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .logo svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="text"],
+    input[type="datetime-local"] {
+      width: 100%;
+      padding: 14px 16px;
+      font-family: var(--font);
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input::placeholder {
+      color: #5c6478;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    button {
+      font-family: var(--font);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s, background 0.15s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      flex: 1;
+      min-width: 140px;
+      color: #fff;
+      background: linear-gradient(135deg, #6c8cff, #8b6cf6);
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #252d3d;
+    }
+
+    .btn-copy {
+      width: 100%;
+      margin-top: 16px;
+      color: var(--accent);
+      background: rgba(108, 140, 255, 0.1);
+      border: 1px solid rgba(108, 140, 255, 0.25);
+    }
+
+    .btn-copy:hover {
+      background: rgba(108, 140, 255, 0.18);
+    }
+
+    .btn-copy.copied {
+      color: var(--success);
+      border-color: rgba(74, 222, 128, 0.3);
+      background: rgba(74, 222, 128, 0.1);
+    }
+
+    .share-box {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .share-box.visible {
+      display: block;
+    }
+
+    .share-url {
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      word-break: break-all;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    /* Countdown view */
+    .countdown-view {
+      display: none;
+      text-align: center;
+    }
+
+    .countdown-view.active {
+      display: block;
+    }
+
+    .setup-view.hidden {
+      display: none;
+    }
+
+    .event-title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .target-date {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      margin-bottom: 40px;
+    }
+
+    .timer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 480px) {
+      .timer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .timer-unit {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 12px;
+    }
+
+    .timer-value {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 8vw, 3rem);
+      font-weight: 600;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, #fff 30%, #a8b4d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .timer-label {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .status {
+      font-size: 1.125rem;
+      font-weight: 500;
+      margin-bottom: 28px;
+    }
+
+    .status.ended {
+      color: var(--danger);
+    }
+
+    .status.live {
+      color: var(--success);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .error-msg {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      font-size: 0.875rem;
+      color: var(--danger);
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      border-radius: 10px;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      font-size: 0.8125rem;
+      color: #4a5168;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Countdown
+      </div>
+      <h1 id="page-title">创建倒计时</h1>
+      <p class="subtitle" id="page-subtitle">设置目标时间，生成链接分享给朋友</p>
+    </header>
+
+    <div class="card">
+      <!-- Setup form -->
+      <div class="setup-view" id="setup-view">
+        <div class="form-group">
+          <label for="event-name">事件名称</label>
+          <input type="text" id="event-name" placeholder="例如：期末考试、生日派对、项目上线" maxlength="60">
+        </div>
+        <div class="form-group">
+          <label for="target-time">目标时间</label>
+          <input type="datetime-local" id="target-time">
+        </div>
+        <div class="error-msg" id="form-error"></div>
+        <div class="btn-row">
+          <button class="btn-primary" id="btn-start">开始倒计时</button>
+        </div>
+        <div class="share-box" id="share-box">
+          <label>分享链接</label>
+          <div class="share-url" id="share-url"></div>
+          <button class="btn-copy" id="btn-copy">复制链接</button>
+        </div>
+      </div>
+
+      <!-- Countdown display -->
+      <div class="countdown-view" id="countdown-view">
+        <h2 class="event-title" id="display-title">倒计时</h2>
+        <p class="target-date" id="display-target"></p>
+        <p class="status live" id="status-text">进行中</p>
+        <div class="timer-grid">
+          <div class="timer-unit">
+            <div class="timer-value" id="days">00</div>
+            <div class="timer-label">天</div>
+          </div>
+          <div class="timer-unit">
+            <div class="timer-value" id="hours">00</div>
+            <div class="timer-label">时</div>
+          </div>
+          <div class="timer-unit">
+            <div class="timer-value" id="minutes">00</div>
+            <div class="timer-label">分</div>
+          </div>
+          <div class="timer-unit">
+            <div class="timer-value" id="seconds">00</div>
+            <div class="timer-label">秒</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-secondary" id="btn-copy-countdown">复制链接</button>
+          <button class="btn-secondary" id="btn-new">新建倒计时</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>链接中包含倒计时信息，打开即可查看</footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const setupView = $("setup-view");
+    const countdownView = $("countdown-view");
+    const eventNameInput = $("event-name");
+    const targetTimeInput = $("target-time");
+    const formError = $("form-error");
+    const shareBox = $("share-box");
+    const shareUrlEl = $("share-url");
+
+    let tickInterval = null;
+    let currentEndTime = null;
+    let currentTitle = "";
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function formatTargetDate(timestamp) {
+      return new Date(timestamp).toLocaleString("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    function buildShareUrl(title, endTime) {
+      const url = new URL(window.location.href.split("?")[0]);
+      url.searchParams.set("t", String(endTime));
+      if (title) url.searchParams.set("name", title);
+      return url.toString();
+    }
+
+    function parseParams() {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get("t");
+      const name = params.get("name") || "";
+      if (!t) return null;
+      const endTime = Number(t);
+      if (!Number.isFinite(endTime) || endTime <= 0) return null;
+      return { endTime, title: name };
+    }
+
+    function showError(msg) {
+      formError.textContent = msg;
+      formError.classList.add("visible");
+    }
+
+    function hideError() {
+      formError.classList.remove("visible");
+    }
+
+    function updateTimer() {
+      const now = Date.now();
+      const diff = currentEndTime - now;
+
+      const statusEl = $("status-text");
+      const daysEl = $("days");
+      const hoursEl = $("hours");
+      const minutesEl = $("minutes");
+      const secondsEl = $("seconds");
+
+      if (diff <= 0) {
+        daysEl.textContent = "00";
+        hoursEl.textContent = "00";
+        minutesEl.textContent = "00";
+        secondsEl.textContent = "00";
+        statusEl.textContent = "时间到！";
+        statusEl.className = "status ended";
+        clearInterval(tickInterval);
+        tickInterval = null;
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      daysEl.textContent = pad(days);
+      hoursEl.textContent = pad(hours);
+      minutesEl.textContent = pad(minutes);
+      secondsEl.textContent = pad(seconds);
+      statusEl.textContent = "倒计时进行中";
+      statusEl.className = "status live";
+    }
+
+    function showCountdown(title, endTime, updateUrl = true) {
+      currentEndTime = endTime;
+      currentTitle = title || "倒计时";
+
+      $("display-title").textContent = currentTitle;
+      $("display-target").textContent = "目标：" + formatTargetDate(endTime);
+
+      setupView.classList.add("hidden");
+      countdownView.classList.add("active");
+      $("page-title").textContent = currentTitle;
+      $("page-subtitle").textContent = "分享给他人，一起等待这一刻";
+
+      if (updateUrl) {
+        history.replaceState(null, "", buildShareUrl(title, endTime));
+      }
+
+      if (tickInterval) clearInterval(tickInterval);
+      updateTimer();
+      tickInterval = setInterval(updateTimer, 1000);
+    }
+
+    function showSetup() {
+      if (tickInterval) {
+        clearInterval(tickInterval);
+        tickInterval = null;
+      }
+      setupView.classList.remove("hidden");
+      countdownView.classList.remove("active");
+      $("page-title").textContent = "创建倒计时";
+      $("page-subtitle").textContent = "设置目标时间，生成链接分享给朋友";
+      history.replaceState(null, "", window.location.pathname);
+    }
+
+    async function copyText(text, btn) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      const original = btn.textContent;
+      btn.textContent = "已复制！";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove("copied");
+      }, 2000);
+    }
+
+    function setDefaultDateTime() {
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      d.setHours(0, 0, 0, 0);
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60000);
+      targetTimeInput.value = local.toISOString().slice(0, 16);
+    }
+
+    $("btn-start").addEventListener("click", () => {
+      hideError();
+      const title = eventNameInput.value.trim();
+      const timeVal = targetTimeInput.value;
+
+      if (!timeVal) {
+        showError("请选择目标时间");
+        return;
+      }
+
+      const endTime = new Date(timeVal).getTime();
+      if (endTime <= Date.now()) {
+        showError("目标时间必须在未来");
+        return;
+      }
+
+      const url = buildShareUrl(title, endTime);
+      shareUrlEl.textContent = url;
+      shareBox.classList.add("visible");
+      showCountdown(title, endTime);
+    });
+
+    $("btn-copy").addEventListener("click", () => {
+      copyText(shareUrlEl.textContent, $("btn-copy"));
+    });
+
+    $("btn-copy-countdown").addEventListener("click", () => {
+      copyText(buildShareUrl(currentTitle, currentEndTime), $("btn-copy-countdown"));
+    });
+
+    $("btn-new").addEventListener("click", showSetup);
+
+    setDefaultDateTime();
+
+    const parsed = parseParams();
+    if (parsed) {
+      showCountdown(parsed.title, parsed.endTime, false);
+    }
+  </script>
+</body>
+</html>
